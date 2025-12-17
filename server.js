@@ -19,23 +19,6 @@ pool.query("SELECT 1")
   .catch(err => console.error("PG error", err));
 
 
-  app.get("/init-db", async (req, res) => {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS students (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        pin_hash TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    res.send("DB initialized");
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
-});
-
 app.get("/", (req, res) => {
   res.send("Server alive");
 });
