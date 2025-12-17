@@ -43,6 +43,8 @@ app.get("/", (req, res) => {
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+
 app.post("/check-tasks", async (req, res) => {
   try {
     const { answers } = req.body;
@@ -162,14 +164,6 @@ app.post("/check-test", async (req, res) => {
   }
 });
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-
 app.post("/auth", async (req, res) => {
   try {
 
@@ -181,8 +175,8 @@ app.post("/auth", async (req, res) => {
     if (!/^\d{4}$/.test(pin))
       return res.json({ success:false, error:"PIN должен состоять из 4 цифр" });
 
-    db.query(
-      "SELECT * FROM student WHERE username = ?",
+    const result = await pool.query(
+      "SELECT * FROM student WHERE username  = $1",
       [username],
       async (err, rows) => {
 
@@ -193,7 +187,7 @@ app.post("/auth", async (req, res) => {
 
           const hash = await bcrypt.hash(pin, 10);
 
-          db.query(
+        const result = await pool.query(
             "INSERT INTO student (username, pin_hash) VALUES (?,?)",
             [username, hash]
           );
@@ -226,6 +220,7 @@ app.post("/auth", async (req, res) => {
         });
       }
     );
+    const rows = result.rows;
 
   } catch (e) {
     console.log("AUTH FATAL:", e);
