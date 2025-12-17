@@ -1,12 +1,44 @@
 import bcrypt from "bcryptjs";
 import cors from 'cors';
 import express from 'express';
-import mysql from 'mysql2';
 import OpenAI from "openai";
+import pkg from "pg";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+const {Pool} = pkg;
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+pool.query("SELECT 1")
+  .then(() => console.log("PostgreSQL connected"))
+  .catch(err => console.error("PG error", err));
+
+
+  app.get("/init-db", async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        pin_hash TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    res.send("DB initialized");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("Server alive");
+});
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -137,7 +169,6 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
-console.log(">>> Запрос ПОЛУЧЕН");
 
 app.post("/auth", async (req, res) => {
   try {
