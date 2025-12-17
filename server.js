@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import cors from 'cors';
 import express from 'express';
 import mysql from 'mysql2';
@@ -204,7 +204,8 @@ app.post("/auth", async (req, res) => {
     });
   }
 });
+const PORT = process.env.PORT || 3000;
 
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Server running");
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
 });
